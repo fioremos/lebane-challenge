@@ -1,0 +1,57 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.2' apply false
+    id 'io.spring.dependency-management' version '1.1.4'
+}
+
+allprojects {
+    group = "com.lebane"
+    version = "1.0-SNAPSHOT"
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'io.spring.dependency-management'
+
+    java {
+        sourceCompatibility = '17'
+    }
+
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.boot:spring-boot-dependencies:3.2.2"
+            mavenBom "org.springframework.cloud:spring-cloud-dependencies:2023.0.0"
+        }
+    }
+
+    dependencies {
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+
+        // Spring Boot Starter dependencies
+        implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+        // Testing dependencies
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    }
+
+    tasks.named('test') {
+        useJUnitPlatform()
+
+        // Always run tests, even if nothing has changed
+        outputs.upToDateWhen { false }
+
+        // Show test results in the console
+        testLogging {
+            events "passed", "skipped", "failed"
+        }
+    }
+
+    tasks.named('build') {
+        dependsOn 'test'
+    }
+}

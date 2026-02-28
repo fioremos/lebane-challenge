@@ -1,0 +1,12 @@
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    implementation project(':lebane-domain')
+}
+
+
+jar {
+    enabled = true
+    archiveBaseName = 'lebane-repository'
+    version = project.version
+}

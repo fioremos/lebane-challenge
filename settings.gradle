@@ -1,0 +1,4 @@
+rootProject.name = "lebane-challenge"
+
+include 'lebane-repository'
+include 'lebane-domain'
