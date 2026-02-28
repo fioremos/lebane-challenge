@@ -63,4 +63,15 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    /**
+     * Maneja erro de Enum invalido
+     * */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidEnum(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(Map.of(
+                "error", "Valor inválido para el campo moneda",
+                "detalle", ex.getMessage()
+        ));
+    }
 }

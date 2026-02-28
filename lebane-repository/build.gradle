@@ -1,5 +1,7 @@
 dependencies {
     implementation project(':lebane-domain')
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
 }
 
 

@@ -19,15 +19,10 @@ public class DepartamentoService {
 
     @Transactional
     public DepartamentoDTO guardar(DepartamentoDTO dptoDTO) {
-        try {
-            Moneda.valueOf(dptoDTO.getMoneda());
+            Moneda.valueOf(dptoDTO.getMoneda().toUpperCase());
             Departamento dpto = mapper.toEntity(dptoDTO);
 
             Departamento dptoSaved = repository.save(dpto);
             return mapper.toDTO(dptoSaved);
-        } catch (IllegalArgumentException e) {
-            return new DepartamentoDTO();
-        }
-
     }
 }
