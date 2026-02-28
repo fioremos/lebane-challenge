@@ -1,6 +1,6 @@
 package com.lebane.repository;
 
-import com.lebane.Departamento;
+import com.lebane.entities.Departamento;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

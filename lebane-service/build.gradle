@@ -1,0 +1,15 @@
+dependencies {
+    implementation project(':lebane-repository')
+    implementation project(':lebane-domain')
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+}
+
+jar {
+    enabled = true
+    archiveBaseName = 'lebane-service'
+    version = project.version
+}

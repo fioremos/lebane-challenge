@@ -1,4 +1,4 @@
-package com.lebane;
+package com.lebane.enums;
 
 public enum Moneda {
     USD,

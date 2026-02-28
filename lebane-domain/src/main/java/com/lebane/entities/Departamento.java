@@ -1,5 +1,6 @@
-package com.lebane;
+package com.lebane.entities;
 
+import com.lebane.enums.Moneda;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
