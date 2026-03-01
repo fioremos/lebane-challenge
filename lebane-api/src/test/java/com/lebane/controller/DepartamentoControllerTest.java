@@ -3,6 +3,7 @@ package com.lebane.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lebane.DepartamentoService;
 import com.lebane.dto.DepartamentoDTO;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,8 +18,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -78,7 +78,7 @@ class DepartamentoControllerTest {
     @Test
     @DisplayName("GET /api/departamentos filtrar todos los datos")
     void listar_ConFiltros_DebeRetornar200() throws Exception {
-        when(departamentoService.listarConFiltros(true, 100.0, 500.0, null))
+        when(departamentoService.listarConFiltros(true, 100.0, 500.0, null, null))
                 .thenReturn(List.of(deptoDTO));
 
         mockMvc.perform(get("/api/departamentos")
@@ -94,7 +94,7 @@ class DepartamentoControllerTest {
     @Test
     @DisplayName("GET /api/departamentos Retornar lista vacía (200 OK) cuando no hay coincidencias")
     void listar_SinCoincidencias_DebeRetornarListaVacia() throws Exception {
-        when(departamentoService.listarConFiltros(true, 99999.0, 100000.0, null))
+        when(departamentoService.listarConFiltros(true, 99999.0, 100000.0, null, null))
                 .thenReturn(Collections.emptyList());
 
         mockMvc.perform(get("/api/departamentos")
@@ -105,5 +105,32 @@ class DepartamentoControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.length()").value(0))
                 .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    @DisplayName("PUT /api/departamentos/{id} actualización es exitosa")
+    void actualizar_Exitoso() throws Exception {
+        Long idExistente = 1L;
+        when(departamentoService.actualizar(eq(idExistente), any(DepartamentoDTO.class)))
+                .thenReturn(deptoDTO);
+
+        mockMvc.perform(put("/api/departamentos/{id}", idExistente)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(deptoDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.titulo").value(deptoDTO.getTitulo()));
+    }
+
+    @Test
+    @DisplayName("PUT /api/departamentos/{id} 404 cuando el depto no existe")
+    void actualizar_NoEncontrado() throws Exception {
+        Long idInexistente = 99L;
+        when(departamentoService.actualizar(eq(idInexistente), any(DepartamentoDTO.class)))
+                .thenThrow(new EntityNotFoundException("No encontrado"));
+
+        mockMvc.perform(put("/api/departamentos/{id}", idInexistente)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(deptoDTO)))
+                .andExpect(status().isNotFound());
     }
 }

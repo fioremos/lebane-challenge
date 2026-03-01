@@ -6,6 +6,7 @@ import com.lebane.enums.Moneda;
 import com.lebane.mapper.DepartamentoMapper;
 import com.lebane.repository.DepartamentoRepository;
 import com.lebane.specifications.DepartamentoSpecifications;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ public class DepartamentoService {
             return mapper.toDTO(dptoSaved);
     }
 
+    @Transactional
     public List<DepartamentoDTO> listarConFiltros(Boolean disponible, Double min, Double max, Double metrosCuadrados, String moneda) {
         if (min != null && max != null && max < min) {
             throw new IllegalArgumentException("El precio máximo no puede ser menor al mínimo");
@@ -42,4 +44,21 @@ public class DepartamentoService {
                 .map(mapper::toDTO)
                 .toList();
     }
+
+    @Transactional
+    public DepartamentoDTO actualizar(Long id, DepartamentoDTO dto) {
+        Departamento dptoExistente = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Departamento no encontrado con ID: " + id));
+
+        Moneda.valueOf(dto.getMoneda().toUpperCase());
+
+        dptoExistente.setTitulo(dto.getTitulo());
+        dptoExistente.setPrecio(dto.getPrecio());
+        dptoExistente.setMoneda(Moneda.valueOf(dto.getMoneda().toUpperCase()));
+        dptoExistente.setMetrosCuadrados(dto.getMetrosCuadrados());
+        dptoExistente.setDisponible(dto.getDisponible());
+
+        return mapper.toDTO(repository.save(dptoExistente));
+    }
+
 }

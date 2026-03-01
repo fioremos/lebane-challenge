@@ -5,6 +5,7 @@ import com.lebane.entities.Departamento;
 import com.lebane.enums.Moneda;
 import com.lebane.mapper.DepartamentoMapper;
 import com.lebane.repository.DepartamentoRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -121,6 +123,48 @@ class DepartamentoServiceTest {
         assertEquals("El precio máximo no puede ser menor al mínimo", ex.getMessage());
 
         verify(repository, never()).findAll(any(Specification.class));
+    }
+
+    @Test
+    @DisplayName("Debe actualizar correctamente cuando el ID existe")
+    void actualizar_Exitoso() {
+        when(repository.findById(1L)).thenReturn(Optional.of(departamentoEntity));
+        when(repository.save(any(Departamento.class))).thenReturn(departamentoEntity);
+        when(mapper.toDTO(any(Departamento.class))).thenReturn(departamentoDTO);
+
+        DepartamentoDTO resultado = service.actualizar(1L, departamentoDTO);
+
+        assertNotNull(resultado);
+        assertEquals("Depto de Prueba", resultado.getTitulo());
+
+        verify(repository).findById(1L);
+        verify(repository).save(departamentoEntity);
+    }
+
+    @Test
+    @DisplayName("Debe lanzar EntityNotFoundException cuando el ID no existe")
+    void actualizar_NoEncontrado() {
+        when(repository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> {
+            service.actualizar(99L, departamentoDTO);
+        });
+
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Debe fallar si el ID existe pero la moneda nueva es inválida")
+    void actualizar_MonedaInvalida() {
+        when(repository.findById(1L)).thenReturn(Optional.of(departamentoEntity));
+        departamentoDTO.setMoneda("BITCOIN");
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            service.actualizar(1L, departamentoDTO);
+        });
+
+        verify(repository).findById(1L);
+        verify(repository, never()).save(any());
     }
 
 }
