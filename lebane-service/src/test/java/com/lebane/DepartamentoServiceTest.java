@@ -12,6 +12,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.jpa.domain.Specification;
+
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -72,6 +76,51 @@ class DepartamentoServiceTest {
         });
 
         verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Debe retornar una lista de DTOs cuando el repositorio encuentra datos")
+    void listarConFiltros_Exitoso() {
+        List<Departamento> entidades = List.of(departamentoEntity);
+
+        when(repository.findAll(any(Specification.class))).thenReturn(entidades);
+        when(mapper.toDTO(any(Departamento.class))).thenReturn(departamentoDTO);
+
+        List<DepartamentoDTO> resultado = service.listarConFiltros(true, 100.0, 1500.0, 50.0, null);
+
+        assertAll("Validar resultado del listado",
+                () -> assertNotNull(resultado),
+                () -> assertEquals(1, resultado.size()),
+                () -> assertEquals("Depto de Prueba", resultado.get(0).getTitulo())
+        );
+
+        verify(repository, times(1)).findAll(any(Specification.class));
+        verify(mapper, times(1)).toDTO(any(Departamento.class));
+    }
+
+    @Test
+    @DisplayName("Debe retornar lista vacía cuando el repositorio no encuentra coincidencias")
+    void listarConFiltros_Vacio() {
+        when(repository.findAll(any(Specification.class))).thenReturn(Collections.emptyList());
+
+        List<DepartamentoDTO> resultado = service.listarConFiltros(false, 0.0, 10.0, 10.0, null);
+
+        assertNotNull(resultado);
+        assertTrue(resultado.isEmpty());
+
+        verify(mapper, never()).toDTO(any());
+    }
+
+    @Test
+    @DisplayName("Debe lanzar IllegalArgumentException cuando el precio max es menor al min")
+    void listar_ErrorRangoPrecios() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+                service.listarConFiltros(true, 500.0, 100.0, 50.0, "USD")
+        );
+
+        assertEquals("El precio máximo no puede ser menor al mínimo", ex.getMessage());
+
+        verify(repository, never()).findAll(any(Specification.class));
     }
 
 }

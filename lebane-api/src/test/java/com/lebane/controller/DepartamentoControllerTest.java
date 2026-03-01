@@ -12,11 +12,15 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Collections;
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @WebMvcTest(DepartamentoController.class)
@@ -69,5 +73,37 @@ class DepartamentoControllerTest {
                 .andExpect(status().isBadRequest());
 
         verify(departamentoService, never()).guardar(any());
+    }
+
+    @Test
+    @DisplayName("GET /api/departamentos filtrar todos los datos")
+    void listar_ConFiltros_DebeRetornar200() throws Exception {
+        when(departamentoService.listarConFiltros(true, 100.0, 500.0, null))
+                .thenReturn(List.of(deptoDTO));
+
+        mockMvc.perform(get("/api/departamentos")
+                        .param("disponible", "true")
+                        .param("precioMin", "100")
+                        .param("precioMax", "500"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].disponible").value(true));
+    }
+
+    @Test
+    @DisplayName("GET /api/departamentos Retornar lista vacía (200 OK) cuando no hay coincidencias")
+    void listar_SinCoincidencias_DebeRetornarListaVacia() throws Exception {
+        when(departamentoService.listarConFiltros(true, 99999.0, 100000.0, null))
+                .thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/api/departamentos")
+                        .param("disponible", "true")
+                        .param("precioMin", "99999")
+                        .param("precioMax", "100000"))
+                .andExpect(status().isOk()) // El status sigue siendo 200
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.length()").value(0))
+                .andExpect(jsonPath("$").isArray());
     }
 }
